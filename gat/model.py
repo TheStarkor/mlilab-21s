@@ -32,26 +32,23 @@ class GAT(nn.Module):
         alpha: float,
         nheads: int,
     ) -> None:
-        """Dense version of GAT."""
-        pass
         super(GAT, self).__init__()
         self.dropout = dropout
 
         self.attentions: List = [
-            # GraphAttentionLayer(nfeat, nhid, dropout=dropout, alpha=alpha, concat=True)
-            # for _ in range(nheads)
+            GraphAttentionLayer(nfeat, nhid, dropout=dropout, alpha=alpha, concat=True)
+            for _ in range(nheads)
         ]
         for i, attention in enumerate(self.attentions):
             self.add_module(f"attention_{i}", attention)
 
-        # self.out_att = GraphAttentionLayer(
-        #     nhid * nheads, nclass, dropout=dropout, alpha=alpha, concat=False
-        # )
+        self.out_att = GraphAttentionLayer(
+            nhid * nheads, nclass, dropout=dropout, alpha=alpha, concat=False
+        )
 
-    def forward(self, x, adj):
-        # x = F.dropout(x, self.dropout, training=self.training)
-        # x = torch.cat([att(x, adj) for att in self.attentions], dim=1)
-        # x = F.dropout(x, self.dropout, training=self.training)
-        # x = F.elu(self.out_att(x, adj))
-        # return F.log_softmax(x, dim=1)
-        pass
+    def forward(self, x: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = torch.cat([att(x, adj) for att in self.attentions], dim=1)
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = F.elu(self.out_att(x, adj))
+        return F.log_softmax(x, dim=1)

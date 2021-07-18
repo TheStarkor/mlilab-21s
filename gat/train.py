@@ -8,7 +8,7 @@ import torch.optim as optim
 
 from option import args
 from utils import load_data, accuracy
-from model import GCN
+from model import GCN, GAT
 
 
 if __name__ == "__main__":
@@ -23,12 +23,22 @@ if __name__ == "__main__":
     print(args)
     adj, features, labels, idx_train, idx_val, idx_test = load_data()
 
-    model = GCN(
-        nfeat=features.shape[1],
-        nhid=args.hidden,
-        nclass=labels.max().item() + 1,
-        dropout=args.dropout,
-    )
+    if args.model == "GCN":
+        model = GCN(
+            nfeat=features.shape[1],
+            nhid=args.hidden,
+            nclass=labels.max().item() + 1,
+            dropout=args.dropout,
+        )
+    else:
+        model = GAT(
+            nfeat=features.shape[1],
+            nhid=args.hidden,
+            nclass=labels.max().item() + 1,
+            dropout=args.dropout,
+            nheads=args.nb_nheads,
+            alpha=args.alpha
+        )
     optimizer = optim.Adam(
         model.parameters(), lr=args.lr, weight_decay=args.weight_decay
     )

@@ -87,7 +87,23 @@ class GraphAttentionLayer(nn.Module):
             return h_prime
 
     def _prepare_attentional_mechanism_input(self, Wh: torch.Tensor) -> torch.Tensor:
-        pass
+        N = Wh.size()[0]
+
+        Wh_repeated_in_chunks = Wh.repeat_interleave(N, dim=0)
+        Wh_repeated_alternating = Wh.repeat(N, 1)
+
+        all_combinations_matrix = torch.cat(
+            [Wh_repeated_in_chunks, Wh_repeated_alternating], dim=1
+        )
+
+        return all_combinations_matrix.view(N, N, 2 * self.out_features)
 
     def __repr__(self) -> str:
-        pass
+        return (
+            self.__class__.__name__
+            + " ("
+            + str(self.in_features)
+            + " -> "
+            + str(self.out_features)
+            + ")"
+        )
