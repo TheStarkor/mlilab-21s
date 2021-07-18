@@ -7,9 +7,7 @@ from torch.nn.parameter import Parameter
 
 
 class GraphConvolutionLayer(nn.Module):
-    def __init__(
-        self, in_features: int, out_features: int, bias=True
-    ) -> None:
+    def __init__(self, in_features: int, out_features: int, bias=True) -> None:
         super(GraphConvolutionLayer, self).__init__()
 
         self.in_features = in_features

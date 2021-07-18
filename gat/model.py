@@ -21,6 +21,7 @@ class GCN(nn.Module):
         x = self.gc2(x, adj)
         return F.log_softmax(x, dim=1)
 
+
 class GAT(nn.Module):
     def __init__(
         self,
