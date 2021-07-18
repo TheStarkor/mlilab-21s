@@ -39,6 +39,9 @@ def load_data(
 
     adj = adj + adj.T.multiply(adj.T > adj) - adj.multiply(adj.T > adj)
 
+    features = normalize_features(features)
+    adj = normalize_adj(adj + sp.eye(adj.shape[0]))
+    
     idx_train = range(140)
     idx_val = range(200, 500)
     idx_test = range(500, 1500)
