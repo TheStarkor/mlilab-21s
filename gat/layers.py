@@ -1,3 +1,4 @@
+import math
 import numpy as np
 import torch
 import torch.nn as nn
@@ -7,20 +8,27 @@ from torch.nn.parameter import Parameter
 
 
 class GraphConvolutionLayer(nn.Module):
-    def __init__(self, in_features: int, out_features: int, bias=True) -> None:
+    def __init__(self, in_features: int, out_features: int, bias: bool = True) -> None:
         super(GraphConvolutionLayer, self).__init__()
 
         self.in_features = in_features
         self.out_features = out_features
 
-        self.W = nn.Parameter(torch.empty(size=(in_features, out_features)))
-        nn.init.xavier_uniform_(self.W.data, gain=1.414)
+        self.weight = nn.Parameter(torch.empty(size=(in_features, out_features)))
+        nn.init.xavier_uniform_(self.weight.data, gain=1.414)
         if bias:
-            self.bias = nn.Parameter(torch.empty(size=(out_features)))
-            nn.init.xavier_uniform_(self.bias.data, gain=1.414)
+            self.bias = nn.Parameter(torch.FloatTensor(size=(out_features,)))
+        else:
+            self.register_parameter("bias", None)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        stdv = 1.0 / math.sqrt(self.weight.size(1))
+        if self.bias is not None:
+            self.bias.data.uniform_(-stdv, stdv)
 
     def forward(self, input: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
-        support = torch.mm(input, self.W)
+        support = torch.mm(input, self.weight)
         output = torch.spmm(adj, support)
 
         if self.bias is not None:
