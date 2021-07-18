@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from layers import GraphConvolutionLayer, GraphAttentionLayer
+from layers import GraphConvolutionLayer, GraphAttentionLayer, SpGraphAttentionLayer
 
 
 class GCN(nn.Module):
@@ -45,6 +45,33 @@ class GAT(nn.Module):
         self.out_att = GraphAttentionLayer(
             nhid * nheads, nclass, dropout=dropout, alpha=alpha, concat=False
         )
+
+    def forward(self, x: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = torch.cat([att(x, adj) for att in self.attentions], dim=1)
+        x = F.dropout(x, self.dropout, training=self.training)
+        x = F.elu(self.out_att(x, adj))
+        return F.log_softmax(x, dim=1)
+
+class SpGAT(nn.Module):
+    def __init__(self, nfeat: int, nhid: int, nclass: int, dropout: float, alpha: float, nheads: int) -> None:
+        """Sparse version of GAT."""
+        super(SpGAT, self).__init__()
+        self.dropout = dropout
+
+        self.attentions = [SpGraphAttentionLayer(nfeat, 
+                                                 nhid, 
+                                                 dropout=dropout, 
+                                                 alpha=alpha, 
+                                                 concat=True) for _ in range(nheads)]
+        for i, attention in enumerate(self.attentions):
+            self.add_module(f'attention_{i}', attention)
+
+        self.out_att = SpGraphAttentionLayer(nhid * nheads, 
+                                             nclass, 
+                                             dropout=dropout, 
+                                             alpha=alpha, 
+                                             concat=False)
 
     def forward(self, x: torch.Tensor, adj: torch.Tensor) -> torch.Tensor:
         x = F.dropout(x, self.dropout, training=self.training)
