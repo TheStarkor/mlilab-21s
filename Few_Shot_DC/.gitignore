@@ -1,0 +1,7 @@
+.vscode/
+__pycache__
+cache/
+checkpoints/
+*.json
+*.tgz
+filelists/CUB/CUB_200_2011/
